@@ -64,45 +64,30 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
       </head>
-      <body className="overflow-x-hidden">
+      <body className="overflow-x-hidden bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 min-h-screen font-sans selection:bg-zinc-900 selection:text-zinc-100 dark:selection:bg-zinc-100 dark:selection:text-zinc-900 antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <header className="fixed top-0 left-0 z-50 hidden w-full flex-row justify-between p-6 md:flex">
-            <a
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://livekit.io"
-              className="scale-100 transition-transform duration-300 hover:scale-110"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={logo} alt={`${companyName} Logo`} className="block size-6 dark:hidden" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={logoDark ?? logo}
-                alt={`${companyName} Logo`}
-                className="hidden size-6 dark:block"
-              />
-            </a>
-            <span className="text-foreground font-mono text-xs font-bold tracking-wider uppercase">
-              Built with{' '}
-              <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://docs.livekit.io/agents"
-                className="underline underline-offset-4"
-              >
-                LiveKit Agents
-              </a>
-            </span>
+          <header className="fixed top-0 left-0 z-50 w-full flex flex-row items-center justify-between p-4 md:px-8 md:py-4 backdrop-blur-xl bg-zinc-50/70 dark:bg-zinc-950/70 border-b border-zinc-200/60 dark:border-zinc-800/60">
+            <div className="flex items-center gap-2.5">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-semibold text-sm tracking-tight text-zinc-900 dark:text-zinc-100">
+                Saira <span className="text-zinc-400 font-normal">Voice AI</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium hidden sm:inline-block">
+                Learning & Literacy Assistant
+              </span>
+            </div>
           </header>
 
           {children}
-          <div className="group fixed bottom-0 left-1/2 z-50 mb-2 -translate-x-1/2">
-            <ThemeToggle className="translate-y-20 transition-transform delay-150 duration-300 group-hover:translate-y-0" />
+          <div className="group fixed bottom-4 right-4 z-50">
+            <ThemeToggle className="shadow-md border border-zinc-200 dark:border-zinc-800" />
           </div>
         </ThemeProvider>
       </body>

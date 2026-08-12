@@ -140,12 +140,12 @@ async def inbound_agent(ctx: JobContext):
 
     # Same voice pipeline as src/agent.py — see that file for the annotated version.
     session = AgentSession(
-        stt=deepgram.STT(model="nova-3"),
+        stt=deepgram.STT(model="nova-3", language="multi"),
         llm=google.LLM(
             model="gemini-2.5-flash",
         ),
         tts=murf.TTS(
-            voice="en-US-matthew",
+            voice="Anisha",
             style="Conversation",
             tokenizer=tokenize.basic.SentenceTokenizer(min_sentence_len=2),
             text_pacing=True,

@@ -33,36 +33,25 @@ export interface AppConfig {
 }
 
 export const APP_CONFIG_DEFAULTS: AppConfig = {
-  companyName: 'Murf AI',
-  pageTitle: 'Voice Agent Starter',
-  pageDescription: 'A voice agent powered by Murf Falcon — the fastest TTS API',
+  companyName: 'Saira AI',
+  pageTitle: 'Saira — Voice AI Assistant',
+  pageDescription: 'Minimal & elegant AI voice assistant for learning and literacy',
 
   supportsChatInput: true,
   supportsVideoInput: true,
   supportsScreenShare: true,
   isPreConnectBufferEnabled: true,
 
-  logo: '/murf-logo.svg',
-  accent: '#6366F1',
-  logoDark: '/murf-logo-dark.svg',
-  accentDark: '#818cf8',
-  startButtonText: 'Start talking',
+  logo: '/saira-avatar.png',
+  accent: '#18181B',
+  logoDark: '/saira-avatar.png',
+  accentDark: '#F4F4F5',
+  startButtonText: 'Start Conversation',
 
   // optional: audio visualization configuration
-  // audioVisualizerType: 'bar',
-  // audioVisualizerColor: '#002cf2',
-  // audioVisualizerColorDark: '#1fd5f9',
-  // audioVisualizerColorShift: 0.3,
-  // audioVisualizerBarCount: 5,
-  // audioVisualizerType: 'radial',
-  // audioVisualizerRadialBarCount: 24,
-  // audioVisualizerRadialRadius: 100,
-  // audioVisualizerType: 'grid',
-  // audioVisualizerGridRowCount: 25,
-  // audioVisualizerGridColumnCount: 25,
-  // audioVisualizerType: 'wave',
-  // audioVisualizerWaveLineWidth: 3,
-  // audioVisualizerType: 'aura',
+  audioVisualizerType: 'wave',
+  audioVisualizerColor: '#18181B',
+  audioVisualizerColorDark: '#F4F4F5',
 
   // agent dispatch configuration
   agentName: process.env.AGENT_NAME ?? undefined,
@@ -70,3 +59,6 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   // LiveKit Cloud Sandbox configuration
   sandboxId: undefined,
 };
+
+
+

@@ -11,6 +11,7 @@ import {
 import { Shimmer } from '@/components/ai-elements/shimmer';
 import { cn } from '@/lib/shadcn/utils';
 import { TileLayout } from './tile-view';
+import { SairaStateBadge, AgentStateName } from '@/components/app/saira-state-badge';
 
 const MotionMessage = motion.create(Shimmer);
 
@@ -156,7 +157,7 @@ export interface AgentSessionView_01Props {
 }
 
 export function AgentSessionView_01({
-  preConnectMessage = 'Agent is listening, ask it a question',
+  preConnectMessage = 'Saira AI is listening. Speak to begin session...',
   supportsChatInput = true,
   supportsVideoInput = true,
   supportsScreenShare = true,
@@ -181,6 +182,18 @@ export function AgentSessionView_01({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { state: agentState } = useAgent();
 
+  // Map LiveKit agent state to Saira state name
+  let mappedState: AgentStateName = 'listening';
+  if (agentState === 'speaking') {
+    mappedState = 'speaking';
+  } else if (agentState === 'thinking') {
+    mappedState = 'thinking';
+  } else if (agentState === 'connecting' || agentState === 'initializing') {
+    mappedState = 'connecting';
+  } else if (agentState === 'disconnected') {
+    mappedState = 'call_ended';
+  }
+
   const controls: AgentControlBarControls = {
     leave: true,
     microphone: true,
@@ -204,7 +217,13 @@ export function AgentSessionView_01({
       className={cn('bg-background relative z-10 h-full w-full overflow-hidden', className)}
       {...props}
     >
+      {/* Top Floating State Header (Who is speaking indicator) */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-40 flex items-center justify-center">
+        <SairaStateBadge state={mappedState} className="shadow-xl" />
+      </div>
+
       <Fade top className="absolute inset-x-4 top-0 z-10 h-40" />
+
       {/* transcript */}
 
       <div className="absolute top-0 bottom-[135px] flex w-full flex-col md:bottom-[170px]">

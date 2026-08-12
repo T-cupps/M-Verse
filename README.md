@@ -278,6 +278,24 @@ Murf Falcon and LiveKit handle audio format internally. For advanced options, se
 
 ---
 
+## Domain Data & Real-Time Function Tools
+
+Saira comes equipped with real-time domain tools for educational support:
+
+- **`lookup_word_definition`**: Queries the live [Free Dictionary API](https://api.dictionaryapi.dev/) for real-time word definitions, phonetic pronunciations, part of speech, and usage examples.
+  - **Tool Description**: Carefully scoped for the LLM to trigger on vocabulary, definition, pronunciation, or spelling queries.
+  - **Failure Path Handling**: Implements a 5-second timeout and catches connection, 404, and HTTP status errors. If a network failure occurs, the tool returns an explicit failure status out loud to the user so Saira states the issue and falls back to general knowledge gracefully instead of guessing or failing silently.
+  - **Data Recency**: Every live query output includes an exact UTC timestamp (`[Live Dictionary Data retrieved as of YYYY-MM-DD HH:MM UTC]`) indicating when the data was retrieved.
+
+- **`fetch_next_exercise`**: Fetches structured interactive exercises tailored to the learner's skill level (`Beginner`, `Intermediate`, `Advanced`, `Primary Math`, `Class 5 English`).
+  - **Data Bank**: Local structured dataset of exercises categorized by difficulty level, topic, question prompt, hint, and target answer.
+
+- **`score_spoken_answer`**: Evaluates and scores the learner's spoken response against target answer concepts out loud.
+  - **Scoring & Feedback**: Calculates keyword accuracy scores (0–10) and returns supportive, constructive verbal feedback for Saira to speak out loud.
+
+
+---
+
 ## Project Structure
 
 ```
