@@ -9,9 +9,9 @@ import {
   type AgentControlBarControls,
 } from '@/components/agents-ui/agent-control-bar';
 import { Shimmer } from '@/components/ai-elements/shimmer';
+import { AgentStateName, SairaStateBadge } from '@/components/app/saira-state-badge';
 import { cn } from '@/lib/shadcn/utils';
 import { TileLayout } from './tile-view';
-import { SairaStateBadge, AgentStateName } from '@/components/app/saira-state-badge';
 
 const MotionMessage = motion.create(Shimmer);
 
@@ -218,7 +218,7 @@ export function AgentSessionView_01({
       {...props}
     >
       {/* Top Floating State Header (Who is speaking indicator) */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-40 flex items-center justify-center">
+      <div className="absolute top-6 left-1/2 z-40 flex -translate-x-1/2 items-center justify-center">
         <SairaStateBadge state={mappedState} className="shadow-xl" />
       </div>
 

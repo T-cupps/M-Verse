@@ -42,6 +42,20 @@ def init_db() -> None:
             );
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS calls (
+                call_id TEXT PRIMARY KEY,
+                room_name TEXT,
+                status TEXT NOT NULL,
+                call_type TEXT NOT NULL,
+                exercise_completed INTEGER DEFAULT 0,
+                started_at TEXT NOT NULL,
+                ended_at TEXT NOT NULL,
+                duration_seconds INTEGER NOT NULL
+            );
+            """
+        )
         conn.commit()
 
 
@@ -190,6 +204,90 @@ def save_user(
         "facts": existing_facts,
         "last_interaction": now_iso,
     }
+
+
+def save_call_record(
+    call_id: str,
+    room_name: str,
+    status: str,
+    call_type: str,
+    exercise_completed: bool,
+    started_at: str,
+    ended_at: str,
+    duration_seconds: int,
+) -> dict[str, Any]:
+    """Save call outcome record in SQLite database."""
+    init_db()
+    with get_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO calls (
+                call_id, room_name, status, call_type, exercise_completed,
+                started_at, ended_at, duration_seconds
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(call_id) DO UPDATE SET
+                status = excluded.status,
+                exercise_completed = excluded.exercise_completed,
+                ended_at = excluded.ended_at,
+                duration_seconds = excluded.duration_seconds
+            """,
+            (
+                call_id,
+                room_name,
+                status,
+                call_type,
+                1 if exercise_completed else 0,
+                started_at,
+                ended_at,
+                duration_seconds,
+            ),
+        )
+        conn.commit()
+
+    return {
+        "call_id": call_id,
+        "room_name": room_name,
+        "status": status,
+        "call_type": call_type,
+        "exercise_completed": exercise_completed,
+        "started_at": started_at,
+        "ended_at": ended_at,
+        "duration_seconds": duration_seconds,
+    }
+
+
+def get_call_analytics() -> dict[str, Any]:
+    """Retrieve call metrics: total_calls, successful_calls, failed_calls, and recent call list."""
+    init_db()
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT COUNT(*) FROM calls")
+        total_calls = cursor.fetchone()[0] or 0
+
+        cursor.execute("SELECT COUNT(*) FROM calls WHERE status = 'SUCCESS'")
+        successful_calls = cursor.fetchone()[0] or 0
+
+        cursor.execute("SELECT COUNT(*) FROM calls WHERE status = 'FAILED'")
+        failed_calls = cursor.fetchone()[0] or 0
+
+        cursor.execute(
+            """
+            SELECT call_id, room_name, status, call_type, exercise_completed,
+                   started_at, ended_at, duration_seconds
+            FROM calls
+            ORDER BY started_at DESC
+            LIMIT 50
+            """
+        )
+        rows = cursor.fetchall()
+
+        return {
+            "total_calls": total_calls,
+            "successful_calls": successful_calls,
+            "failed_calls": failed_calls,
+            "recent_calls": [dict(row) for row in rows],
+        }
 
 
 # Automatically ensure DB tables exist on import

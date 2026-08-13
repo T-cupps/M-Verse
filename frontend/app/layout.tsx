@@ -64,30 +64,30 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
       </head>
-      <body className="overflow-x-hidden bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 min-h-screen font-sans selection:bg-zinc-900 selection:text-zinc-100 dark:selection:bg-zinc-100 dark:selection:text-zinc-900 antialiased">
+      <body className="min-h-screen overflow-x-hidden bg-zinc-50 font-sans text-zinc-900 antialiased selection:bg-zinc-900 selection:text-zinc-100 dark:bg-zinc-950 dark:text-zinc-100 dark:selection:bg-zinc-100 dark:selection:text-zinc-900">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <header className="fixed top-0 left-0 z-50 w-full flex flex-row items-center justify-between p-4 md:px-8 md:py-4 backdrop-blur-xl bg-zinc-50/70 dark:bg-zinc-950/70 border-b border-zinc-200/60 dark:border-zinc-800/60">
+          <header className="fixed top-0 left-0 z-50 flex w-full flex-row items-center justify-between border-b border-zinc-200/60 bg-zinc-50/70 p-4 backdrop-blur-xl md:px-8 md:py-4 dark:border-zinc-800/60 dark:bg-zinc-950/70">
             <div className="flex items-center gap-2.5">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-semibold text-sm tracking-tight text-zinc-900 dark:text-zinc-100">
-                Saira <span className="text-zinc-400 font-normal">Voice AI</span>
+              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+              <span className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+                Saira <span className="font-normal text-zinc-400">Voice AI</span>
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium hidden sm:inline-block">
+              <span className="hidden text-xs font-medium text-zinc-500 sm:inline-block dark:text-zinc-400">
                 Learning & Literacy Assistant
               </span>
             </div>
           </header>
 
           {children}
-          <div className="group fixed bottom-4 right-4 z-50">
-            <ThemeToggle className="shadow-md border border-zinc-200 dark:border-zinc-800" />
+          <div className="group fixed right-4 bottom-4 z-50">
+            <ThemeToggle className="border border-zinc-200 shadow-md dark:border-zinc-800" />
           </div>
         </ThemeProvider>
       </body>

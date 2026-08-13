@@ -36,6 +36,7 @@ load_dotenv(".env.local")
 class Assistant(Agent):
     def __init__(self) -> None:
         super().__init__(instructions=SYSTEM_PROMPT)
+        self.exercise_completed = False
 
     @function_tool
     async def lookup_caller(self, context: RunContext, user_id_or_name: str) -> str:
@@ -97,6 +98,7 @@ class Assistant(Agent):
         """
         clean_word = word.strip().lower()
         now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        self.exercise_completed = True
         logger.info(f"Looking up live dictionary entry for word: {clean_word}")
 
         url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{clean_word}"
@@ -180,6 +182,7 @@ class Assistant(Agent):
             topic: Optional specific learning topic (e.g. 'Vocabulary', 'Grammar', 'Fractions', 'Science').
         """
         now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        self.exercise_completed = True
         logger.info(f"Fetching next exercise for level='{level}', topic='{topic}'")
 
         exercises = {
@@ -289,6 +292,7 @@ class Assistant(Agent):
             target_answer: The target answer or reference concept keywords.
         """
         now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        self.exercise_completed = True
         logger.info(
             f"Scoring spoken answer for exercise_id={exercise_id}: '{spoken_answer}' against '{target_answer}'"
         )
@@ -409,14 +413,14 @@ async def my_agent(ctx: JobContext):
         llm=google.LLM(
                 model="gemini-3.5-flash-lite",
             ),
-        # Text-to-speech (TTS) is your agent's voice, turning the LLM's text into speech that the user can hear
-        # See all available models as well as voice selections at https://docs.livekit.io/agents/models/tts/
+        # Text-to-speech (TTS) using Murf Falcon TTS
+        # Recommended Voices: Anisha, Samar, Pooja
         tts=murf.TTS(
-                voice="Anisha",
-                style="Conversation",
-                tokenizer=tokenize.basic.SentenceTokenizer(min_sentence_len=2),
-                text_pacing=True
-            ),
+            voice="Anisha",  # Options: "Anisha", "Samar", "Pooja"
+            style="Conversation",
+            tokenizer=tokenize.basic.SentenceTokenizer(min_sentence_len=2),
+            text_pacing=True,
+        ),
         # VAD and turn detection are used to determine when the user is speaking and when the agent should respond
         # See more at https://docs.livekit.io/agents/build/turns
         turn_detection=MultilingualModel(),
@@ -444,24 +448,68 @@ async def my_agent(ctx: JobContext):
     # # Start the avatar and wait for it to join
     # await avatar.start(session, room=ctx.room)
 
-    # Start the session, which initializes the voice pipeline and warms up the models
-    await session.start(
-        agent=Assistant(),
-        room=ctx.room,
-        room_options=room_io.RoomOptions(
-            audio_input=room_io.AudioInputOptions(
-                noise_cancellation=lambda params: (
-                    noise_cancellation.BVCTelephony()
-                    if params.participant.kind
-                    == rtc.ParticipantKind.PARTICIPANT_KIND_SIP
-                    else noise_cancellation.BVC()
+    assistant = Assistant()
+    start_time = datetime.now(timezone.utc)
+    call_id = f"CALL-{ctx.room.name}-{int(start_time.timestamp())}"
+
+    call_type = "BROWSER"
+    if ctx.room.remote_participants:
+        for p in ctx.room.remote_participants.values():
+            if p.kind == rtc.ParticipantKind.PARTICIPANT_KIND_SIP:
+                call_type = "SIP"
+                break
+
+    try:
+        # Start the session, which initializes the voice pipeline and warms up the models
+        await session.start(
+            agent=assistant,
+            room=ctx.room,
+            room_options=room_io.RoomOptions(
+                audio_input=room_io.AudioInputOptions(
+                    noise_cancellation=lambda params: (
+                        noise_cancellation.BVCTelephony()
+                        if params.participant.kind
+                        == rtc.ParticipantKind.PARTICIPANT_KIND_SIP
+                        else noise_cancellation.BVC()
+                    ),
                 ),
             ),
-        ),
-    )
+        )
 
-    # Join the room and connect to the user
-    await ctx.connect()
+        # Join the room and connect to the user
+        await ctx.connect()
+
+        # Wait for room disconnect or worker shutdown signal before finishing session
+        disconnect_event = asyncio.Event()
+
+        @ctx.room.on("disconnected")
+        def _on_room_disconnected(*args, **kwargs):
+            disconnect_event.set()
+
+        ctx.add_shutdown_callback(lambda: disconnect_event.set())
+
+        await disconnect_event.wait()
+    finally:
+        end_time = datetime.now(timezone.utc)
+        duration_seconds = max(0, int((end_time - start_time).total_seconds()))
+
+        # A call is successful if exercise tools were triggered OR if the learner engaged in a practice session (>15s duration)
+        is_success = assistant.exercise_completed or (duration_seconds >= 15)
+        status = "SUCCESS" if is_success else "FAILED"
+
+        logger.info(
+            f"Call session ended: call_id={call_id}, status={status}, duration={duration_seconds}s"
+        )
+        db.save_call_record(
+            call_id=call_id,
+            room_name=ctx.room.name,
+            status=status,
+            call_type=call_type,
+            exercise_completed=is_success,
+            started_at=start_time.isoformat(),
+            ended_at=end_time.isoformat(),
+            duration_seconds=duration_seconds,
+        )
 
 
 if __name__ == "__main__":

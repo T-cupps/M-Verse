@@ -59,6 +59,3 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   // LiveKit Cloud Sandbox configuration
   sandboxId: undefined,
 };
-
-
-
