@@ -16,9 +16,17 @@ interface SairaStateBadgeProps {
   state: AgentStateName;
   className?: string;
   userVolume?: number;
+  activeAgent?: 'Saira' | 'ARIA';
 }
 
-export function SairaStateBadge({ state, className, userVolume = 0 }: SairaStateBadgeProps) {
+export function SairaStateBadge({
+  state,
+  className,
+  userVolume = 0,
+  activeAgent = 'Saira',
+}: SairaStateBadgeProps) {
+  const isAria = activeAgent === 'ARIA';
+
   switch (state) {
     case 'ready':
       return (
@@ -42,7 +50,7 @@ export function SairaStateBadge({ state, className, userVolume = 0 }: SairaState
           )}
         >
           <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-400" />
-          <span className="tracking-wide">Connecting to Saira...</span>
+          <span className="tracking-wide">Connecting to Voice Session...</span>
         </div>
       );
 
@@ -50,15 +58,30 @@ export function SairaStateBadge({ state, className, userVolume = 0 }: SairaState
       return (
         <div
           className={cn(
-            'inline-flex items-center gap-3 rounded-full border border-emerald-500/30 bg-slate-950/80 px-5 py-2 text-xs font-medium text-emerald-300 shadow-2xl backdrop-blur-2xl',
+            'inline-flex items-center gap-3 rounded-full border px-5 py-2 text-xs font-medium shadow-2xl backdrop-blur-2xl transition-all duration-500',
+            isAria
+              ? 'border-amber-500/40 bg-slate-950/90 text-amber-300'
+              : 'border-emerald-500/30 bg-slate-950/80 text-emerald-300',
             className
           )}
         >
           <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />
-            <Mic className="h-3.5 w-3.5 text-emerald-400" />
+            <span
+              className={cn(
+                'h-2 w-2 animate-ping rounded-full',
+                isAria ? 'bg-amber-400' : 'bg-emerald-400'
+              )}
+            />
+            <Mic className={cn('h-3.5 w-3.5', isAria ? 'text-amber-400' : 'text-emerald-400')} />
           </div>
-          <span className="font-semibold tracking-wide text-emerald-200">Listening to you</span>
+          <span
+            className={cn(
+              'font-semibold tracking-wide',
+              isAria ? 'text-amber-200' : 'text-emerald-200'
+            )}
+          >
+            {isAria ? 'ARIA (Math Specialist) Listening' : 'Saira AI Listening'}
+          </span>
 
           {/* Live mic audio volume level bars */}
           <div className="ml-1 flex h-3.5 items-center gap-1">
@@ -67,7 +90,10 @@ export function SairaStateBadge({ state, className, userVolume = 0 }: SairaState
               return (
                 <span
                   key={i}
-                  className="w-1 rounded-full bg-emerald-400 shadow-xs shadow-emerald-400 transition-all duration-75"
+                  className={cn(
+                    'w-1 rounded-full transition-all duration-75',
+                    isAria ? 'bg-amber-400 shadow-amber-400' : 'bg-emerald-400 shadow-emerald-400'
+                  )}
                   style={{ height: `${h}px` }}
                 />
               );
@@ -80,25 +106,46 @@ export function SairaStateBadge({ state, className, userVolume = 0 }: SairaState
       return (
         <div
           className={cn(
-            'inline-flex items-center gap-3 rounded-full border border-cyan-500/30 bg-slate-950/80 px-5 py-2 text-xs font-medium text-cyan-300 shadow-2xl backdrop-blur-2xl',
+            'inline-flex items-center gap-3 rounded-full border px-5 py-2 text-xs font-medium shadow-2xl backdrop-blur-2xl transition-all duration-500',
+            isAria
+              ? 'border-amber-400/50 bg-amber-950/70 text-amber-200 ring-2 ring-amber-500/30'
+              : 'border-cyan-500/30 bg-slate-950/80 text-cyan-300',
             className
           )}
         >
-          <Volume2 className="h-3.5 w-3.5 animate-pulse text-cyan-400" />
-          <span className="font-bold tracking-wide text-cyan-100">Saira AI is speaking</span>
+          <Volume2
+            className={cn('h-3.5 w-3.5 animate-pulse', isAria ? 'text-amber-400' : 'text-cyan-400')}
+          />
+          <span
+            className={cn(
+              'font-bold tracking-wide',
+              isAria ? 'text-amber-100' : 'text-cyan-100'
+            )}
+          >
+            {isAria ? 'ARIA (Math Specialist) Speaking' : 'Saira AI Speaking'}
+          </span>
 
           {/* Dynamic wave bars */}
           <div className="ml-1 flex h-3.5 items-center gap-1">
             <span
-              className="w-1 animate-[bounce_0.6s_infinite_100ms] rounded-full bg-cyan-400"
+              className={cn(
+                'w-1 animate-[bounce_0.6s_infinite_100ms] rounded-full',
+                isAria ? 'bg-amber-400' : 'bg-cyan-400'
+              )}
               style={{ height: '12px' }}
             />
             <span
-              className="w-1 animate-[bounce_0.6s_infinite_200ms] rounded-full bg-indigo-400"
+              className={cn(
+                'w-1 animate-[bounce_0.6s_infinite_200ms] rounded-full',
+                isAria ? 'bg-orange-400' : 'bg-indigo-400'
+              )}
               style={{ height: '16px' }}
             />
             <span
-              className="w-1 animate-[bounce_0.6s_infinite_300ms] rounded-full bg-cyan-300"
+              className={cn(
+                'w-1 animate-[bounce_0.6s_infinite_300ms] rounded-full',
+                isAria ? 'bg-yellow-300' : 'bg-cyan-300'
+              )}
               style={{ height: '10px' }}
             />
           </div>
@@ -109,12 +156,22 @@ export function SairaStateBadge({ state, className, userVolume = 0 }: SairaState
       return (
         <div
           className={cn(
-            'inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-slate-900/80 px-4 py-1.5 text-xs font-medium text-purple-300 shadow-lg backdrop-blur-2xl',
+            'inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-medium shadow-lg backdrop-blur-2xl transition-all duration-500',
+            isAria
+              ? 'border-amber-500/40 bg-slate-900/90 text-amber-300'
+              : 'border-purple-500/30 bg-slate-900/80 text-purple-300',
             className
           )}
         >
-          <span className="h-2 w-2 animate-ping rounded-full bg-purple-400" />
-          <span className="tracking-wide">Thinking...</span>
+          <span
+            className={cn(
+              'h-2 w-2 animate-ping rounded-full',
+              isAria ? 'bg-amber-400' : 'bg-purple-400'
+            )}
+          />
+          <span className="tracking-wide">
+            {isAria ? 'ARIA Calculating & Thinking...' : 'Saira Thinking...'}
+          </span>
         </div>
       );
 
@@ -135,3 +192,4 @@ export function SairaStateBadge({ state, className, userVolume = 0 }: SairaState
       return null;
   }
 }
+

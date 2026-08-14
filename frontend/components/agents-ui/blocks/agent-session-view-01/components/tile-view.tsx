@@ -9,7 +9,10 @@ import {
   useVoiceAssistant,
 } from '@livekit/components-react';
 import { cn } from '@/lib/shadcn/utils';
+import { SairaAvatar } from '@/components/app/saira-avatar';
+import { AgentStateName } from '@/components/app/saira-state-badge';
 import { AudioVisualizer } from './audio-visualizer';
+
 
 const ANIMATION_TRANSITION: MotionProps['transition'] = {
   type: 'spring',
@@ -17,6 +20,7 @@ const ANIMATION_TRANSITION: MotionProps['transition'] = {
   damping: 75,
   mass: 1,
 };
+
 
 const tileViewClassNames = {
   // GRID
@@ -69,6 +73,8 @@ export function useLocalTrackRef(source: Track.Source) {
 
 interface TileLayoutProps {
   chatOpen: boolean;
+  activeAgent?: 'Saira' | 'ARIA';
+  agentState?: AgentStateName;
   audioVisualizerType?: 'bar' | 'wave' | 'grid' | 'radial' | 'aura';
   audioVisualizerColor?: `#${string}`;
   audioVisualizerColorShift?: number;
@@ -82,6 +88,8 @@ interface TileLayoutProps {
 
 export function TileLayout({
   chatOpen,
+  activeAgent = 'Saira',
+  agentState = 'listening',
   audioVisualizerType,
   audioVisualizerColor,
   audioVisualizerColorShift,
@@ -92,6 +100,8 @@ export function TileLayout({
   audioVisualizerGridColumnCount,
   audioVisualizerWaveLineWidth,
 }: TileLayoutProps) {
+
+
   const { videoTrack: agentVideoTrack } = useVoiceAssistant();
   const [screenShareTrack] = useTracks([Track.Source.ScreenShare]);
   const cameraTrack: TrackReference | undefined = useLocalTrackRef(Track.Source.Camera);
@@ -120,7 +130,7 @@ export function TileLayout({
           >
             <AnimatePresence mode="popLayout">
               {!isAvatar && (
-                // Audio Agent
+                // Audio Agent with Elegant Central Pulse & Visualizer
                 <motion.div
                   key="agent"
                   layoutId="agent"
@@ -130,35 +140,33 @@ export function TileLayout({
                     ...ANIMATION_TRANSITION,
                     delay: animationDelay,
                   }}
-                  className={cn('relative aspect-square h-[90px]')}
+                  className={cn(
+                    'relative flex items-center justify-center',
+                    chatOpen ? 'aspect-square h-[90px]' : 'h-full w-full py-6'
+                  )}
                 >
-                  <AudioVisualizer
-                    key="audio-visualizer"
-                    initial={{ scale: 1 }}
-                    animate={{ scale: chatOpen ? 0.2 : 1 }}
-                    transition={{
-                      ...ANIMATION_TRANSITION,
-                      delay: animationDelay,
-                    }}
-                    audioVisualizerType={audioVisualizerType}
-                    audioVisualizerColor={audioVisualizerColor}
-                    audioVisualizerColorShift={audioVisualizerColorShift}
-                    audioVisualizerBarCount={audioVisualizerBarCount}
-                    audioVisualizerRadialBarCount={audioVisualizerRadialBarCount}
-                    audioVisualizerRadialRadius={audioVisualizerRadialRadius}
-                    audioVisualizerGridRowCount={audioVisualizerGridRowCount}
-                    audioVisualizerGridColumnCount={audioVisualizerGridColumnCount}
-                    audioVisualizerWaveLineWidth={audioVisualizerWaveLineWidth}
-                    isChatOpen={chatOpen}
-                    className={cn(
-                      'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-                      'bg-background rounded-[50px] border border-transparent transition-[border,drop-shadow]',
-                      chatOpen && 'border-input shadow-2xl/10 delay-200'
-                    )}
-                    style={{ color: audioVisualizerColor }}
-                  />
+                  {!chatOpen ? (
+                    <div className="relative flex flex-col items-center justify-center py-8">
+                      <SairaAvatar
+                        state={agentState}
+                        activeAgent={activeAgent}
+                        className="scale-125 transition-transform duration-700 sm:scale-150"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center p-2">
+                      <SairaAvatar
+                        state={agentState}
+                        activeAgent={activeAgent}
+                        className="scale-90"
+                      />
+                    </div>
+                  )}
+
                 </motion.div>
               )}
+
+
 
               {isAvatar && (
                 // Avatar Agent

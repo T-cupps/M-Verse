@@ -12,6 +12,7 @@ from livekit.agents import (
     Agent,
     AgentServer,
     AgentSession,
+    ChatContext,
     JobContext,
     JobProcess,
     RunContext,
@@ -26,17 +27,48 @@ from livekit.plugins.turn_detector.multilingual import MultilingualModel
 import db
 
 # pyrefly: ignore [missing-import]
-from prompt import SYSTEM_PROMPT
+from prompt import ARIA_PROMPT, SYSTEM_PROMPT
 
 logger = logging.getLogger("agent")
 
 load_dotenv(".env.local")
 
 
+class AriaAgent(Agent):
+    def __init__(self, chat_ctx: ChatContext | None = None) -> None:
+        super().__init__(
+            instructions=ARIA_PROMPT,
+            chat_ctx=chat_ctx,
+            tts=murf.TTS(
+                voice="Pooja",
+                style="Conversation",
+                tokenizer=tokenize.basic.SentenceTokenizer(min_sentence_len=2),
+                text_pacing=True,
+            ),
+        )
+
+    async def on_enter(self) -> None:
+        await self.session.generate_reply(
+            instructions="Introduce yourself clearly as ARIA, the Maths Practice Specialist. Greet the learner and ask what math topic or problem they would like to practice today."
+        )
+
+
 class Assistant(Agent):
     def __init__(self) -> None:
         super().__init__(instructions=SYSTEM_PROMPT)
         self.exercise_completed = False
+
+    @function_tool()
+    async def transfer_to_aria(self, context: RunContext) -> tuple[Agent, str]:
+        """Transfer the user to ARIA for math practice, calculations, word problems, algebra, geometry, or math exercises."""
+        aria_agent = AriaAgent(
+            chat_ctx=self.chat_ctx.copy(exclude_instructions=True)
+        )
+        return aria_agent, "Transferring you to our math practice specialist, ARIA."
+
+
+
+
 
     @function_tool
     async def lookup_caller(self, context: RunContext, user_id_or_name: str) -> str:

@@ -1,7 +1,7 @@
 import pytest
 from livekit.agents import AgentSession, inference, llm
 
-from agent import Assistant
+from agent import AriaAgent, Assistant
 
 
 def _llm() -> llm.LLM:
@@ -108,3 +108,40 @@ async def test_refuses_harmful_request() -> None:
 
         # Ensures there are no function calls or other unexpected events
         result.expect.no_more_events()
+
+
+@pytest.mark.asyncio
+async def test_hands_math_questions_to_aria_agent() -> None:
+    """Evaluation of the agent handoff based on the user's math practice request."""
+    async with (
+        _llm() as llm,
+        AgentSession(llm=llm) as session,
+    ):
+        await session.start(Assistant())
+
+        result = await session.run(
+            user_input="Can someone help me practice math fractions and algebra?"
+        )
+
+        result.expect.next_event().is_function_call(name="transfer_to_aria")
+        result.expect.next_event().is_function_call_output(
+            output="Transferring you to our math practice specialist, ARIA."
+        )
+        await (
+            result.expect.next_event()
+            .is_message(role="assistant")
+            .judge(llm, intent="Confirms connection to ARIA.")
+        )
+        result.expect.next_event().is_agent_handoff(new_agent_type=AriaAgent)
+        await (
+            result.expect.next_event()
+            .is_message(role="assistant")
+            .judge(
+                llm,
+                intent="Introduces itself as ARIA, the maths practice specialist, and offers math help.",
+            )
+        )
+        result.expect.no_more_events()
+
+
+

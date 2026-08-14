@@ -194,6 +194,30 @@ export function AgentSessionView_01({
     mappedState = 'call_ended';
   }
 
+  // Persistent active agent state
+  const [activeAgentName, setActiveAgentName] = useState<'Saira' | 'ARIA'>('Saira');
+
+  useEffect(() => {
+    // Check if any message indicates ARIA transfer or ARIA presence
+    const hasAria = messages.some((m) => {
+      if (typeof m.message === 'string') {
+        const text = m.message.toLowerCase();
+        return (
+          text.includes('aria') ||
+          text.includes('math practice specialist') ||
+          text.includes('maths practice specialist') ||
+          text.includes('math specialist')
+        );
+      }
+      return false;
+    });
+
+    if (hasAria) {
+      setActiveAgentName('ARIA');
+    }
+  }, [messages]);
+
+
   const controls: AgentControlBarControls = {
     leave: true,
     microphone: true,
@@ -214,15 +238,34 @@ export function AgentSessionView_01({
   return (
     <section
       ref={ref}
-      className={cn('bg-background relative z-10 h-full w-full overflow-hidden', className)}
+      className={cn('bg-background relative z-10 h-full w-full overflow-hidden select-none', className)}
       {...props}
     >
+      {/* Dynamic Ambient Background Glows depending on Active Specialist */}
+      <div
+        className={cn(
+          'pointer-events-none absolute top-1/4 left-1/2 h-[32rem] w-[32rem] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[140px] transition-all duration-1000 sm:h-[45rem] sm:w-[45rem]',
+          activeAgentName === 'ARIA'
+            ? 'bg-amber-600/15'
+            : 'bg-indigo-600/15'
+        )}
+      />
+      <div
+        className={cn(
+          'pointer-events-none absolute bottom-10 left-1/3 h-[25rem] w-[25rem] rounded-full blur-[120px] transition-all duration-1000',
+          activeAgentName === 'ARIA'
+            ? 'bg-orange-500/15'
+            : 'bg-cyan-500/15'
+        )}
+      />
+
       {/* Top Floating State Header (Who is speaking indicator) */}
       <div className="absolute top-6 left-1/2 z-40 flex -translate-x-1/2 items-center justify-center">
-        <SairaStateBadge state={mappedState} className="shadow-xl" />
+        <SairaStateBadge state={mappedState} activeAgent={activeAgentName} className="shadow-2xl" />
       </div>
 
-      <Fade top className="absolute inset-x-4 top-0 z-10 h-40" />
+      <Fade top className="absolute inset-x-4 top-0 z-10 h-32" />
+
 
       {/* transcript */}
 
@@ -245,6 +288,8 @@ export function AgentSessionView_01({
       {/* Tile layout */}
       <TileLayout
         chatOpen={chatOpen}
+        activeAgent={activeAgentName}
+        agentState={mappedState}
         audioVisualizerType={audioVisualizerType}
         audioVisualizerColor={audioVisualizerColor}
         audioVisualizerColorShift={audioVisualizerColorShift}
@@ -255,6 +300,8 @@ export function AgentSessionView_01({
         audioVisualizerGridColumnCount={audioVisualizerGridColumnCount}
         audioVisualizerWaveLineWidth={audioVisualizerWaveLineWidth}
       />
+
+
       {/* Bottom */}
       <motion.div
         {...BOTTOM_VIEW_MOTION_PROPS}
